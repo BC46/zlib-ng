@@ -5,9 +5,6 @@
 
 #include "zbuild.h"
 #include "zendian.h"
-#include "crc32_braid_p.h"
-#include "deflate.h"
-#include "deflate_p.h"
 #include "functable.h"
 #include "cpu_features.h"
 
@@ -110,10 +107,8 @@ static void init_functable(void) {
 #ifdef X86_SSSE3
     if (cf.x86.has_ssse3) {
         ft.adler32 = &adler32_ssse3;
-#  ifdef X86_SSE2
         ft.chunkmemset_safe = &chunkmemset_safe_ssse3;
         ft.inflate_fast = &inflate_fast_ssse3;
-#  endif
     }
 #endif
     // X86 - SSE4.2
@@ -164,7 +159,7 @@ static void init_functable(void) {
     }
 #endif
     // X86 - VPCLMULQDQ
-#if defined(X86_PCLMULQDQ_CRC) && defined(X86_VPCLMULQDQ_CRC)
+#ifdef X86_VPCLMULQDQ_CRC
     if (cf.x86.has_pclmulqdq && cf.x86.has_avx512 && cf.x86.has_vpclmulqdq) {
         ft.crc32 = &crc32_vpclmulqdq;
         ft.crc32_fold = &crc32_fold_vpclmulqdq;
@@ -175,18 +170,18 @@ static void init_functable(void) {
 #endif
 
 
-    // ARM - SIMD
+        // ARM - SIMD
 #ifdef ARM_SIMD
-#  ifndef ARM_NOCHECK_SIMD
+        #  ifndef ARM_NOCHECK_SIMD
     if (cf.arm.has_simd)
 #  endif
     {
         ft.slide_hash = &slide_hash_armv6;
     }
 #endif
-    // ARM - NEON
+        // ARM - NEON
 #ifdef ARM_NEON
-#  ifndef ARM_NOCHECK_NEON
+        #  ifndef ARM_NOCHECK_NEON
     if (cf.arm.has_neon)
 #  endif
     {
@@ -202,9 +197,9 @@ static void init_functable(void) {
 #  endif
     }
 #endif
-    // ARM - ACLE
+        // ARM - ACLE
 #ifdef ARM_ACLE
-    if (cf.arm.has_crc32) {
+        if (cf.arm.has_crc32) {
         ft.crc32 = &crc32_acle;
         ft.insert_string = &insert_string_acle;
         ft.quick_insert_string = &quick_insert_string_acle;
@@ -213,16 +208,16 @@ static void init_functable(void) {
 #endif
 
 
-    // Power - VMX
+        // Power - VMX
 #ifdef PPC_VMX
-    if (cf.power.has_altivec) {
+        if (cf.power.has_altivec) {
         ft.adler32 = &adler32_vmx;
         ft.slide_hash = &slide_hash_vmx;
     }
 #endif
-    // Power8 - VSX
+        // Power8 - VSX
 #ifdef POWER8_VSX
-    if (cf.power.has_arch_2_07) {
+        if (cf.power.has_arch_2_07) {
         ft.adler32 = &adler32_power8;
         ft.chunkmemset_safe = &chunkmemset_safe_power8;
         ft.chunksize = &chunksize_power8;
@@ -231,12 +226,12 @@ static void init_functable(void) {
     }
 #endif
 #ifdef POWER8_VSX_CRC32
-    if (cf.power.has_arch_2_07)
+        if (cf.power.has_arch_2_07)
         ft.crc32 = &crc32_power8;
 #endif
-    // Power9
+        // Power9
 #ifdef POWER9
-    if (cf.power.has_arch_3_00) {
+        if (cf.power.has_arch_3_00) {
         ft.compare256 = &compare256_power9;
         ft.longest_match = &longest_match_power9;
         ft.longest_match_slow = &longest_match_slow_power9;
@@ -244,9 +239,9 @@ static void init_functable(void) {
 #endif
 
 
-    // RISCV - RVV
+        // RISCV - RVV
 #ifdef RISCV_RVV
-    if (cf.riscv.has_rvv) {
+        if (cf.riscv.has_rvv) {
         ft.adler32 = &adler32_rvv;
         ft.adler32_fold_copy = &adler32_fold_copy_rvv;
         ft.chunkmemset_safe = &chunkmemset_safe_rvv;
@@ -260,9 +255,9 @@ static void init_functable(void) {
 #endif
 
 
-    // S390
+        // S390
 #ifdef S390_CRC32_VX
-    if (cf.s390.has_vx)
+        if (cf.s390.has_vx)
         ft.crc32 = crc32_s390_vx;
 #endif
 
@@ -382,22 +377,22 @@ static uint32_t update_hash_stub(deflate_state* const s, uint32_t h, uint32_t va
 
 /* functable init */
 Z_INTERNAL struct functable_s functable = {
-    force_init_stub,
-    adler32_stub,
-    adler32_fold_copy_stub,
-    chunkmemset_safe_stub,
-    chunksize_stub,
-    compare256_stub,
-    crc32_stub,
-    crc32_fold_stub,
-    crc32_fold_copy_stub,
-    crc32_fold_final_stub,
-    crc32_fold_reset_stub,
-    inflate_fast_stub,
-    insert_string_stub,
-    longest_match_stub,
-    longest_match_slow_stub,
-    quick_insert_string_stub,
-    slide_hash_stub,
-    update_hash_stub
+        force_init_stub,
+        adler32_stub,
+        adler32_fold_copy_stub,
+        chunkmemset_safe_stub,
+        chunksize_stub,
+        compare256_stub,
+        crc32_stub,
+        crc32_fold_stub,
+        crc32_fold_copy_stub,
+        crc32_fold_final_stub,
+        crc32_fold_reset_stub,
+        inflate_fast_stub,
+        insert_string_stub,
+        longest_match_stub,
+        longest_match_slow_stub,
+        quick_insert_string_stub,
+        slide_hash_stub,
+        update_hash_stub
 };
